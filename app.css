@@ -1,0 +1,12 @@
+@font-face {
+    font-family: PressStart2P-Regular;
+    src: url(PressStart2P-Regular.ttf);
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+}
+
+span {
+    font-style: italic;
+}
