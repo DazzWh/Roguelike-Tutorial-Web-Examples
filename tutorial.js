@@ -87,8 +87,10 @@ var Tutorial1 = (function () {
                 var i = _this.getRandomInt(0, _this.obstacle_grid.length - 1);
                 var p = _this.obstacle_grid.splice(i, 1);
                 _this.map.putTile(5, p[0].x + 2, p[0].y + 3, _this.layer_objects);
+                _this.setNextObjTime();
                 if (--_this.count <= 0)
                     _this.stage_id++;
+                return;
             }
             if (_this.stage_id == 1) {
                 if (_this.obstacle_grid.length > 0) {

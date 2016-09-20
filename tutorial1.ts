@@ -146,9 +146,10 @@ class Tutorial1 {
 			let p = this.obstacle_grid.splice(i, 1);
 			// Put the tile at that position + 2 to put them in the middle
 			this.map.putTile(5, p[0].x + 2, p[0].y + 3, this.layer_objects);
-
+			this.setNextObjTime();
 			if(--this.count <= 0)
 				this.stage_id++;
+				return;
 		}
 
 		// Walls
