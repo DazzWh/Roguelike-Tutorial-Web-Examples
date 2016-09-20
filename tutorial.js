@@ -1,3 +1,10 @@
+var Point = (function () {
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    return Point;
+}());
 var Tutorial1 = (function () {
     function Tutorial1() {
         var _this = this;
@@ -7,7 +14,7 @@ var Tutorial1 = (function () {
         this.obsts = [4, 7];
         this.items = [2, 7];
         this.enmys = [1, 3];
-        this.stages = ["floor & walls", "obstacles", "items",
+        this.stages = ["obstacles", "floor & walls", "items",
             "enemies", "player", "exit", "run again? (click)"];
         this.active = false;
         this.preload = function () {
@@ -28,6 +35,10 @@ var Tutorial1 = (function () {
                 _this.start_label = _this.game.add.text((ms * ts) * 0.5, ((ms * ts) + ts) * 0.5, "click to start", style);
                 _this.start_label.anchor.set(0.5);
             }
+            _this.obstacle_grid = new Array();
+            for (var x = 0; x < ms - 4; x++)
+                for (var y = 0; y < ms - 4; y++)
+                    _this.obstacle_grid.push(new Point(x, y));
         };
         this.update = function () {
             if (!_this.active) {
@@ -58,7 +69,8 @@ var Tutorial1 = (function () {
         this.startMapGen = function () {
             _this.tx = 0;
             _this.ty = 1;
-            _this.count, _this.stage_id = 0;
+            _this.stage_id = 0;
+            _this.count = _this.getRandomInt(_this.obsts[0], _this.obsts[1]);
             _this.next_obj_time = 0;
             if (_this.label != null)
                 _this.label.setText("");
@@ -72,6 +84,24 @@ var Tutorial1 = (function () {
         this.genMap = function () {
             _this.updateLabel();
             if (_this.stage_id == 0) {
+                var i = _this.getRandomInt(0, _this.obstacle_grid.length - 1);
+                var p = _this.obstacle_grid.splice(i, 1);
+                _this.map.putTile(5, p[0].x + 2, p[0].y + 3, _this.layer_objects);
+                if (--_this.count <= 0)
+                    _this.stage_id++;
+            }
+            if (_this.stage_id == 1) {
+                if (_this.obstacle_grid.length > 0) {
+                    var p = _this.obstacle_grid.shift();
+                    _this.map.putTile(4, p.x + 2, p.y + 3, _this.layer_floor);
+                    if (_this.obstacle_grid.length == 0)
+                        _this.tx, _this.ty = 1;
+                    return;
+                }
+                if (_this.tx > 1 && _this.tx < _this.MAPSIZE - 2 &&
+                    _this.ty > 2 && _this.ty < _this.MAPSIZE - 2) {
+                    _this.ty = _this.MAPSIZE - 1;
+                }
                 var t = 4;
                 if (_this.tx == 0 || _this.ty == 1 ||
                     _this.tx == _this.MAPSIZE - 1 || _this.ty == _this.MAPSIZE) {
@@ -88,8 +118,8 @@ var Tutorial1 = (function () {
                     return;
                 }
             }
-            if ([1, 2, 3].indexOf(_this.stage_id) != -1) {
-                var tile_id = [5, 7, 1][_this.stage_id - 1];
+            if ([2, 3].indexOf(_this.stage_id) != -1) {
+                var tile_id = [7, 1][_this.stage_id - 1];
                 var x = void 0;
                 var y = void 0;
                 while (true) {

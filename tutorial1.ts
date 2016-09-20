@@ -1,3 +1,13 @@
+// Simple class to hold grid positions
+class Point {
+	x: number;
+	y: number;
+	constructor(x: number, y:number) {
+        this.x = x;
+		this.y = y;
+    }
+}
+
 class Tutorial1 {
 
     // Size settings
@@ -19,13 +29,15 @@ class Tutorial1 {
     layer_objects: Phaser.TilemapLayer;
 
     // Generation variables
-    tx:             number; // Currently evaluated tile x
-    ty:             number; // Currently evaluated tile y
-    count:          number; // Counter for objects
-    stage_id:       number; // Currently generating object (stages[stage_id])
-    next_obj_time:  number; // Time until next object is placed
+    tx:             number;        // Currently evaluated tile x
+    ty:             number;        // Currently evaluated tile y
+    count:          number;        // Counter for objects
+    stage_id:       number;        // Currently generating object (stages[stage_id])
+    next_obj_time:  number;        // Time until next object is placed
+	obstacle_grid:  Array<Point>  // Availible places for the grid
 
-    stages:  Array<string> = ["floor & walls", "obstacles", "items",
+	// This time obstacles goes first
+    stages:  Array<string> = ["obstacles", "floor & walls", "items",
                               "enemies", "player", "exit", "run again? (click)"];
 
     active: boolean = false;
@@ -62,6 +74,13 @@ class Tutorial1 {
             this.start_label = this.game.add.text((ms*ts)*0.5, ((ms*ts) + ts)*0.5, "click to start", style);
             this.start_label.anchor.set(0.5);
         }
+
+		// Create an array of available places to to put obstacles
+		// obstacles can't be in the 2 outer most columns/rows of the grid
+		this.obstacle_grid = new Array();
+		for (let x = 0; x < ms - 4; x++)
+			for (let y = 0; y < ms - 4; y++)
+			    this.obstacle_grid.push(new Point(x, y));
     }
 
     update = () => {
@@ -101,7 +120,8 @@ class Tutorial1 {
         // Reset map variables
         this.tx       = 0;
         this.ty       = 1; // 1 as we leave top tiles blank to fit in the label
-        this.count, this.stage_id = 0;
+        this.stage_id = 0;
+		this.count = this.getRandomInt(this.obsts[0], this.obsts[1]);
 
         this.next_obj_time = 0;
 
@@ -119,8 +139,36 @@ class Tutorial1 {
 
         this.updateLabel();
 
-        // Floor and Walls
-        if(this.stage_id == 0) {
+        // Obstacles
+		if(this.stage_id == 0) {
+			// Get random point in grid and remove it from the array
+			let i = this.getRandomInt(0, this.obstacle_grid.length - 1);
+			let p = this.obstacle_grid.splice(i, 1);
+			// Put the tile at that position + 2 to put them in the middle
+			this.map.putTile(5, p[0].x + 2, p[0].y + 3, this.layer_objects);
+
+			if(--this.count <= 0)
+				this.stage_id++;
+		}
+
+		// Walls
+        if(this.stage_id == 1) {
+			// Place the rest of the floor between the obstacles
+			if (this.obstacle_grid.length > 0){
+				let p = this.obstacle_grid.shift();
+				this.map.putTile(4, p.x + 2, p.y + 3, this.layer_floor);
+				// Reset "pointer" if done with this bit
+				if (this.obstacle_grid.length == 0)
+					this.tx, this.ty = 1;
+				return;
+			}
+
+			// if we're looking at a middle bit move to the end
+			if (this.tx > 1 && this.tx < this.MAPSIZE - 2 &&
+				this.ty > 2 && this.ty < this.MAPSIZE - 2){
+				this.ty = this.MAPSIZE - 1;
+			}
+
             // Set the tile id to floor (4) unless it's an outer tile
             // Then it's a wall (6)
             let t = 4;
@@ -148,11 +196,11 @@ class Tutorial1 {
             }
         }
 
-        // Obstacles, Items & Enemies
-        if([1,2,3].indexOf(this.stage_id) != -1) {
+        // Items & Enemies
+        if([2,3].indexOf(this.stage_id) != -1) {
             // Get what tile we're placing from the stage_id
             // obstacle (5), item (7), enemy (1)
-            let tile_id = [5,7,1][this.stage_id - 1];
+            let tile_id = [7,1][this.stage_id - 1];
             let x: number;
             let y: number;
             while(true){
