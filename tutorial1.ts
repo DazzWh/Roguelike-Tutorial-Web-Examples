@@ -23,7 +23,7 @@ class Tutorial1 {
     ty:             number; // Currently evaluated tile y
     count:          number; // Counter for objects
     stage_id:       number; // Currently generating object (stages[stage_id])
-    next_obj_time:  number; // Time until next object is placed
+    obj_place:      boolean;// When waiting for a delay timer this is false
 
     stages:  Array<string> = ["floor & walls", "obstacles", "items",
                               "enemies", "player", "exit", "run again? (click)"];
@@ -74,12 +74,10 @@ class Tutorial1 {
             return;
         }
 
-        // If we're waiting for object timer remove elapsed time from it
-        if(this.next_obj_time > 0){
-            this.next_obj_time -= this.game.time.elapsed;
-            return;
-        }else{
-            this.updateLabel();
+        this.updateLabel();
+
+        if(!this.obj_place){
+            return
         }
 
         // If we're not in the "run again?" stage gen map
@@ -103,7 +101,7 @@ class Tutorial1 {
         this.ty       = 1; // 1 as we leave top tiles blank to fit in the label
         this.count, this.stage_id = 0;
 
-        this.next_obj_time = 0;
+        this.obj_place = true;
 
         if(this.label != null) this.label.setText("");
 
@@ -164,7 +162,7 @@ class Tutorial1 {
             }
 
             this.map.putTile(tile_id, x, y, this.layer_objects);
-            this.setNextObjTime();
+            this.setObjDelay();
 
             if(--this.count <= 0) {
                 // When we've placed the amount required, move to next stage and
@@ -181,7 +179,7 @@ class Tutorial1 {
         // Player
         if(this.stage_id == 4) {
             this.map.putTile(2, 1, this.MAPSIZE - 1, this.layer_objects);
-            this.setNextObjTime();
+            this.setObjDelay();
             this.stage_id++;
             return;
         }
@@ -189,14 +187,19 @@ class Tutorial1 {
         // Exit
         if(this.stage_id == 5) {
             this.map.putTile(0, this.MAPSIZE - 2, 2, this.layer_objects);
-            this.setNextObjTime();
+            this.setObjDelay();
             this.stage_id++;
             return;
         }
     }
 
-    setNextObjTime = () => {
-        this.next_obj_time = this.game.time.totalElapsedSeconds() + (this.DELAY * 1000);
+    setObjDelay = () => {
+        this.obj_place = false;
+        this.game.time.events.add(Phaser.Timer.SECOND * this.DELAY, this.allowPlacement, this);
+    }
+
+    allowPlacement = () => {
+        this.obj_place = true;
     }
 
     getRandomInt = (min: number, max: number) => {
