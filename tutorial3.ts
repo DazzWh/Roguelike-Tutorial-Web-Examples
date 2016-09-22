@@ -1,4 +1,4 @@
-class Tutorial1 {
+class Tutorial3 {
 
     // Size settings
     MAPSIZE:  number = 10;
@@ -11,12 +11,13 @@ class Tutorial1 {
     enmys: [number, number] = [1, 3]; // Enemies
 
     // Object references
-    game:          Phaser.Game;
-    label:         Phaser.Text;
-    start_label:   Phaser.Text;
-    map:           Phaser.Tilemap;
-    layer_floor:   Phaser.TilemapLayer;
-    layer_objects: Phaser.TilemapLayer;
+    game:           Phaser.Game;
+    label:          Phaser.Text;
+    label_start:    Phaser.Text;
+    map:            Phaser.Tilemap;
+    layer_floor:    Phaser.TilemapLayer;
+    layer_objects:  Phaser.TilemapLayer;
+    layer_question: Phaser.TilemapLayer;
 
     // Generation variables
     tx:             number; // Currently evaluated tile x
@@ -24,6 +25,9 @@ class Tutorial1 {
     count:          number; // Counter for objects
     stage_id:       number; // Currently generating object (stages[stage_id])
     obj_place:      boolean;// When waiting for a delay timer this is false
+    checking:       boolean;// If we're currently placing a questionmark or the actual object
+    chk_x:          number;
+    chk_y:          number;
 
     stages:  Array<string> = ["floor & walls", "obstacles", "items",
                               "enemies", "player", "exit", "run again? (click)"];
@@ -48,8 +52,10 @@ class Tutorial1 {
         let ms: number = this.MAPSIZE;
         this.map = this.game.add.tilemap(null, ts, ts, ms, ms);
         this.map.addTilesetImage('spritesheet', null, ts, ts, 0, 0);
-        this.layer_floor   = this.map.createBlankLayer('floor', ms*ts, ms*ts, ts, ts);
-        this.layer_objects = this.map.createBlankLayer('objects', ms*ts, ms*ts, ts, ts);
+        this.layer_floor    = this.map.createBlankLayer('floor', ms*ts, ms*ts, ts, ts);
+        this.layer_objects  = this.map.createBlankLayer('objects', ms*ts, ms*ts, ts, ts);
+        this.layer_question = this.map.createBlankLayer('question', ms*ts, ms*ts, ts, ts);
+        this.layer_question.alpha = 0.25;
 
         // Label
         let style = { font: "16px PressStart2P-Regular", fill: "#ffffff",
@@ -59,8 +65,8 @@ class Tutorial1 {
 
         // Start label
         if(!this.active){
-            this.start_label = this.game.add.text((ms*ts)*0.5, ((ms*ts) + ts)*0.5, "click to start", style);
-            this.start_label.anchor.set(0.5);
+            this.label_start = this.game.add.text((ms*ts)*0.5, ((ms*ts) + ts)*0.5, "click to start", style);
+            this.label_start.anchor.set(0.5);
         }
     }
 
@@ -69,7 +75,7 @@ class Tutorial1 {
         if(!this.active){
             if (this.game.input.mousePointer.isDown){
                 this.active = true;
-                this.start_label.destroy();
+                this.label_start.destroy();
             }
             return;
         }
@@ -114,7 +120,6 @@ class Tutorial1 {
     }
 
     genMap = () => {
-
         this.updateLabel();
 
         // Floor and Walls
@@ -148,20 +153,33 @@ class Tutorial1 {
 
         // Obstacles, Items & Enemies
         if([1,2,3].indexOf(this.stage_id) != -1) {
+            // TODO: This is tacked on and messy.
+            let x: number;
+            let y: number;
+
+            // Place marker at random point
+            if(this.checking){
+                // Get random tile with a gap from the outer walls
+                x = this.getRandomInt(2, this.MAPSIZE - 3);
+                y = this.getRandomInt(3, this.MAPSIZE - 3);
+                this.chk_x = x;
+                this.chk_y = y;
+                this.map.putTile(3, x, y, this.layer_question);
+                this.checking = false;
+                this.setObjDelay();
+                return;
+            } else {
+                this.checking = true;
+                this.map.putTile(null, this.chk_x, this.chk_y, this.layer_question)
+                if( this.map.getTile(this.chk_x, this.chk_y, this.layer_objects) != null)
+                    return;
+            }
+
             // Get what tile we're placing from the stage_id
             // obstacle (5), item (7), enemy (1)
             let tile_id = [5,7,1][this.stage_id - 1];
-            let x: number;
-            let y: number;
-            while(true){
-                // Get random tile with a gap from the outer walls
-                x = this.getRandomInt(2, this.MAPSIZE - 3);
-                y = this.getRandomInt(3, this.MAPSIZE - 2);
-                if( this.map.getTile(x, y, this.layer_objects) == null)
-                    break;
-            }
 
-            this.map.putTile(tile_id, x, y, this.layer_objects);
+            this.map.putTile(tile_id, this.chk_x, this.chk_y, this.layer_objects);
             this.setObjDelay();
 
             if(--this.count <= 0) {
@@ -209,5 +227,5 @@ class Tutorial1 {
 }
 
 window.onload = () => {
-    let tut1 = new Tutorial1();
+    let tut3 = new Tutorial3();
 };

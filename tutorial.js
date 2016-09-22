@@ -1,5 +1,5 @@
-var Tutorial1 = (function () {
-    function Tutorial1() {
+var Tutorial3 = (function () {
+    function Tutorial3() {
         var _this = this;
         this.MAPSIZE = 10;
         this.TILESIZE = 32;
@@ -20,20 +20,22 @@ var Tutorial1 = (function () {
             _this.map.addTilesetImage('spritesheet', null, ts, ts, 0, 0);
             _this.layer_floor = _this.map.createBlankLayer('floor', ms * ts, ms * ts, ts, ts);
             _this.layer_objects = _this.map.createBlankLayer('objects', ms * ts, ms * ts, ts, ts);
+            _this.layer_question = _this.map.createBlankLayer('question', ms * ts, ms * ts, ts, ts);
+            _this.layer_question.alpha = 0.25;
             var style = { font: "16px PressStart2P-Regular", fill: "#ffffff",
                 align: "center", backgroundColor: "#000000" };
             _this.label = _this.game.add.text((ms * ts) * 0.5, ts * 0.5, "", style);
             _this.label.anchor.set(0.5);
             if (!_this.active) {
-                _this.start_label = _this.game.add.text((ms * ts) * 0.5, ((ms * ts) + ts) * 0.5, "click to start", style);
-                _this.start_label.anchor.set(0.5);
+                _this.label_start = _this.game.add.text((ms * ts) * 0.5, ((ms * ts) + ts) * 0.5, "click to start", style);
+                _this.label_start.anchor.set(0.5);
             }
         };
         this.update = function () {
             if (!_this.active) {
                 if (_this.game.input.mousePointer.isDown) {
                     _this.active = true;
-                    _this.start_label.destroy();
+                    _this.label_start.destroy();
                 }
                 return;
             }
@@ -86,16 +88,26 @@ var Tutorial1 = (function () {
                 }
             }
             if ([1, 2, 3].indexOf(_this.stage_id) != -1) {
-                var tile_id = [5, 7, 1][_this.stage_id - 1];
                 var x = void 0;
                 var y = void 0;
-                while (true) {
+                if (_this.checking) {
                     x = _this.getRandomInt(2, _this.MAPSIZE - 3);
-                    y = _this.getRandomInt(3, _this.MAPSIZE - 2);
-                    if (_this.map.getTile(x, y, _this.layer_objects) == null)
-                        break;
+                    y = _this.getRandomInt(3, _this.MAPSIZE - 3);
+                    _this.chk_x = x;
+                    _this.chk_y = y;
+                    _this.map.putTile(3, x, y, _this.layer_question);
+                    _this.checking = false;
+                    _this.setObjDelay();
+                    return;
                 }
-                _this.map.putTile(tile_id, x, y, _this.layer_objects);
+                else {
+                    _this.checking = true;
+                    _this.map.putTile(null, _this.chk_x, _this.chk_y, _this.layer_question);
+                    if (_this.map.getTile(_this.chk_x, _this.chk_y, _this.layer_objects) != null)
+                        return;
+                }
+                var tile_id = [5, 7, 1][_this.stage_id - 1];
+                _this.map.putTile(tile_id, _this.chk_x, _this.chk_y, _this.layer_objects);
                 _this.setObjDelay();
                 if (--_this.count <= 0) {
                     if (++_this.stage_id < 4) {
@@ -131,8 +143,8 @@ var Tutorial1 = (function () {
         this.game = new Phaser.Game(this.TILESIZE * this.MAPSIZE, (this.TILESIZE * this.MAPSIZE) + this.TILESIZE, Phaser.AUTO, 'content', { preload: this.preload, create: this.create, update: this.update });
         this.startMapGen();
     }
-    return Tutorial1;
+    return Tutorial3;
 }());
 window.onload = function () {
-    var tut1 = new Tutorial1();
+    var tut3 = new Tutorial3();
 };
