@@ -5,8 +5,8 @@ var Point = (function () {
     }
     return Point;
 }());
-var Tutorial1 = (function () {
-    function Tutorial1() {
+var Tutorial2 = (function () {
+    function Tutorial2() {
         var _this = this;
         this.MAPSIZE = 10;
         this.TILESIZE = 32;
@@ -162,8 +162,8 @@ var Tutorial1 = (function () {
         this.game = new Phaser.Game(this.TILESIZE * this.MAPSIZE, (this.TILESIZE * this.MAPSIZE) + this.TILESIZE, Phaser.AUTO, 'content', { preload: this.preload, create: this.create, update: this.update });
         this.startMapGen();
     }
-    return Tutorial1;
+    return Tutorial2;
 }());
 window.onload = function () {
-    var tut1 = new Tutorial1();
+    var tut2 = new Tutorial2();
 };
