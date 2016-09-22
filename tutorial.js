@@ -48,12 +48,9 @@ var Tutorial2 = (function () {
                 }
                 return;
             }
-            if (_this.next_obj_time > 0) {
-                _this.next_obj_time -= _this.game.time.elapsed;
+            _this.updateLabel();
+            if (!_this.obj_place) {
                 return;
-            }
-            else {
-                _this.updateLabel();
             }
             if (_this.stage_id != _this.stages.length - 1) {
                 _this.genMap();
@@ -71,7 +68,7 @@ var Tutorial2 = (function () {
             _this.ty = 1;
             _this.stage_id = 0;
             _this.count = _this.getRandomInt(_this.obsts[0], _this.obsts[1]);
-            _this.next_obj_time = 0;
+            _this.obj_place = true;
             if (_this.label != null)
                 _this.label.setText("");
             if (_this.map != null) {
@@ -87,7 +84,7 @@ var Tutorial2 = (function () {
                 var i = _this.getRandomInt(0, _this.obstacle_grid.length - 1);
                 var p = _this.obstacle_grid.splice(i, 1);
                 _this.map.putTile(5, p[0].x + 2, p[0].y + 3, _this.layer_objects);
-                _this.setNextObjTime();
+                _this.setObjDelay();
                 if (--_this.count <= 0)
                     _this.stage_id++;
                 return;
@@ -131,7 +128,7 @@ var Tutorial2 = (function () {
                         break;
                 }
                 _this.map.putTile(tile_id, x, y, _this.layer_objects);
-                _this.setNextObjTime();
+                _this.setObjDelay();
                 if (--_this.count <= 0) {
                     if (++_this.stage_id < 4) {
                         var next = [_this.items, _this.enmys][_this.stage_id - 2];
@@ -142,19 +139,23 @@ var Tutorial2 = (function () {
             }
             if (_this.stage_id == 4) {
                 _this.map.putTile(2, 1, _this.MAPSIZE - 1, _this.layer_objects);
-                _this.setNextObjTime();
+                _this.setObjDelay();
                 _this.stage_id++;
                 return;
             }
             if (_this.stage_id == 5) {
                 _this.map.putTile(0, _this.MAPSIZE - 2, 2, _this.layer_objects);
-                _this.setNextObjTime();
+                _this.setObjDelay();
                 _this.stage_id++;
                 return;
             }
         };
-        this.setNextObjTime = function () {
-            _this.next_obj_time = _this.game.time.totalElapsedSeconds() + (_this.DELAY * 1000);
+        this.setObjDelay = function () {
+            _this.obj_place = false;
+            _this.game.time.events.add(Phaser.Timer.SECOND * _this.DELAY, _this.allowPlacement, _this);
+        };
+        this.allowPlacement = function () {
+            _this.obj_place = true;
         };
         this.getRandomInt = function (min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
